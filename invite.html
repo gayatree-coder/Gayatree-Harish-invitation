@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Harish & Gayatree - Wedding Invite</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Montserrat', sans-serif;
+      background: #000;
+      color: #fff;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      position: relative;
+    }
+
+    /* Sparkling Stars Background */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: 
+        radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+        radial-gradient(white, rgba(255,255,255,.1) 1px, transparent 2px);
+      background-size: 50px 50px, 30px 30px, 20px 20px;
+      background-position: 0 0, 25px 25px, 15px 15px;
+      opacity: 0.5;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Fireworks Canvas */
+    #fireworks {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* Invitation Content */
+    .content {
+      z-index: 2;
+      text-align: center;
+      max-width: 650px;
+      padding: 30px;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 1.2s ease, transform 1.2s ease;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 30px rgba(255, 105, 180, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .content.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Styling */
+    .content p {
+      font-size: 1.2em;
+      margin: 18px 0;
+      line-height: 1.7;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .content h1 {
+      font-family: 'Dancing Script', cursive;
+      font-size: 3em;
+      color: #ff99cc;
+      margin: 10px 0;
+      text-shadow: 0 0 10px #ff6b9d;
+    }
+
+    .highlight {
+      color: #ff6b9d;
+      font-weight: 600;
+    }
+
+    .dresscode {
+      color: #6dd5ed;
+    }
+
+    .emoji {
+      font-size: 1.4em;
+      margin-right: 5px;
+    }
+
+    .location a {
+      color: #ffd700;
+      text-decoration: none;
+      font-weight: 600;
+      border-bottom: 2px dotted #ffd700;
+      transition: all 0.3s ease;
+    }
+
+    .location a:hover {
+      transform: scale(1.1);
+    }
+
+    .signature {
+      font-family: 'Dancing Script', cursive;
+      font-size: 2.2em;
+      color: #ff6b9d;
+      margin-top: 20px;
+      text-shadow: 0 0 8px rgba(255, 107, 157, 0.5);
+    }
+
+    .heart {
+      color: #ff4d6d;
+      animation: pulse 1.2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Canvas for Fireworks -->
+  <canvas id="fireworks"></canvas>
+
+  <!-- Invitation Content -->
+  <div class="content" id="content">
+    <h1>You're Invited!</h1>
+    <p>Hello Everyone,</p>
+    <p>It would mean a lot to us if you could join us to celebrate our special day. Please save the date and come share in our happiness!</p>
+    
+    <p><span class="highlight">📅 Date</span>: <strong>6th August 2025</strong></p>
+    <p><span class="highlight">⏰ Time</span>: <strong>10:00 AM onwards (followed by Lunch)</strong></p>
+    
+    <p><span class="highlight dresscode">👗 Dress Code</span>: <strong>Western Theme</strong></p>
+    <p>For Men: Coat Suit / Blazer</p>
+    <p>For Girls: Gown</p>
+    <p>For Ladies: Banarasi Saree</p>
+    
+    <p><span class="highlight">📍 Venue</span>: <strong>Krishna's Courtyard Hotel & Convention Hall</strong></p>
+    <p><span class="highlight">Address</span>: 896, Plot-895, Subhadrapur Rd, Cuttack, Odisha 753011</p>
+    <p class="location"><a href="https://maps.app.goo.gl/Q2UCqKponYAqAM3Z6?g_st=aw" target="_blank">📌 View on Google Maps</a></p>
+    
+    <p class="signature">With love,<br>Harish & Gayatree <span class="heart">💖</span></p>
+  </div>
+
+  <!-- Fireworks Script -->
+  <script>
+    (function() {
+      const canvas = document.getElementById('fireworks');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      let fireworks = [];
+      let particles = [];
+
+      // Firework class
+      class Firework {
+        constructor(x, y, tx, ty) {
+          this.x = x;
+          this.y = y;
+          this.tx = tx;
+          this.ty = ty;
+          this.distanceToTarget = this.calculateDistance(x, y, tx, ty);
+          this.distanceTraveled = 0;
+          this.speed = 3;
+          this.angle = Math.atan2(ty - y, tx - x);
+          this.coordinates = [];
+          this.coordinateCount = 3;
+          while (this.coordinateCount--) {
+            this.coordinates.push([this.x, this.y]);
+          }
+          this.hue = Math.floor(Math.random() * 60) + 330; // Pinks & Purples
+        }
+
+        calculateDistance(x1, y1, x2, y2) {
+          return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        }
+
+        update() {
+          this.coordinates.pop();
+          this.coordinates.unshift([this.x, this.y]);
+
+          this.x += Math.cos(this.angle) * this.speed;
+          this.y += Math.sin(this.angle) * this.speed;
+
+          this.distanceTraveled += this.speed;
+
+          if (this.distanceTraveled >= this.distanceToTarget) {
+            this.explode();
+            return true;
+          }
+          return false;
+        }
+
+        explode() {
+          const particleCount = Math.random() * 15 + 20;
+          for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle(this.tx, this.ty, this.hue));
+          }
+        }
+
+        draw() {
+          ctx.beginPath();
+          ctx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+          ctx.lineTo(this.x, this.y);
+          ctx.strokeStyle = `hsl(${this.hue}, 100%, 60%)`;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          this.coordinates.forEach((coord, i) => {
+            ctx.beginPath();
+            ctx.arc(coord[0], coord[1], i + 1, 0, Math.PI * 2, false);
+            ctx.fillStyle = `hsl(${this.hue}, 100%, 60%)`;
+            ctx.fill();
+          });
+        }
+      }
+
+      // Particle class
+      class Particle {
+        constructor(x, y, hue) {
+          this.x = x;
+          this.y = y;
+          this.hue = hue + Math.random() * 30 - 15;
+          this.speed = Math.random() * 5 + 2;
+          this.velocity = {
+            x: Math.random() * 4 - 2,
+            y: Math.random() * -5 - 2
+          };
+          this.gravity = 0.1;
+          this.alpha = 1;
+          this.decay = Math.random() * 0.03 + 0.015;
+          this.size = Math.random() * 3 + 1;
+        }
+
+        update() {
+          this.velocity.y += this.gravity;
+          this.x += this.velocity.x;
+          this.y += this.velocity.y;
+          this.alpha -= this.decay;
+          return this.alpha <= 0;
+        }
+
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+          ctx.fillStyle = `hsla(${this.hue}, 100%, 70%, ${this.alpha})`;
+          ctx.fill();
+        }
+      }
+
+      // Launch random firework
+      function launchRandomFirework() {
+        const x = Math.random() * canvas.width;
+        const y = canvas.height;
+        const tx = Math.random() * canvas.width;
+        const ty = Math.random() * (canvas.height / 2);
+        fireworks.push(new Firework(x, y, tx, ty));
+      }
+
+      // Animation loop
+      function animate() {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.globalCompositeOperation = 'lighter';
+
+        fireworks = fireworks.filter(f => !f.update());
+        particles = particles.filter(p => !p.update());
+
+        fireworks.forEach(f => f.draw());
+        particles.forEach(p => p.draw());
+
+        requestAnimationFrame(animate);
+      }
+
+      // Launch fireworks every 400ms
+      let launchInterval = setInterval(launchRandomFirework, 400);
+
+      // After 2.5 seconds, hide fireworks and show message line by line
+      setTimeout(() => {
+        clearInterval(launchInterval);
+        document.getElementById('fireworks').style.display = 'none';
+        const content = document.getElementById('content');
+        content.classList.add('visible');
+
+        const paragraphs = content.querySelectorAll('p, h1');
+        paragraphs.forEach((el, i) => {
+          setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+          }, i * 250);
+        });
+      }, 2500);
+
+      animate();
+
+      // Resize canvas on window resize
+      window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+    })();
+  </script>
+
+</body>
+</html>
